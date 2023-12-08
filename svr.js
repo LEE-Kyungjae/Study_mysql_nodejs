@@ -47,11 +47,33 @@ app.post('/process/adduser',(req,res)=>{
     pool.getConnection((err,conn)=>{
         if(err){
             conn.release();
-            console.log("연결오류");ㅁㄴㅇ
+            console.log("연결오류");
             return;
         }
         console.log("DB연결 성공");
-
+        //DB연결이 완료되었으므로, 유저정보를 insert하자
+        conn.query(
+            'insert into users(id,name,age,password)values(?,?,?,?);',[paramId,paramName,paramAge,paramPassword],
+        (err,result)=>{
+            /* 위의 insert쿼리를 실행하면 err, result로 최종 결과를 받아볼 수 있다. */
+            conn.release();/* db연결 해제 */
+            if(err){
+                console.log("등록실패");
+                return;
+            }
+            if(result){
+                console.log("가입성공");
+                res.writeHead('200', {'Content-Type':'text/html; charset=utf8'});
+                res.write("<h2>" + paramName + "님 가입을 축하합니다.</h2>");
+                res.end();
+            }else{
+                console.log("가입실패");
+                res.writeHead('404', {'Contest-Type':'text/html; charset=utf8'});
+                res.write("<h2>정보추가에 실패했습니다. 관리자에게 문의하세요</h2>");
+                res.end();
+            }
+        }
+        );
     });
 });
 
